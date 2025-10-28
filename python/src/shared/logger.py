@@ -1,24 +1,16 @@
+# logger_config.py
 import logging
 import sys
-import json
-from datetime import datetime
 
-def get_json_logger(service_name: str):
+def get_logger(service_name: str):
     logger = logging.getLogger(service_name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     handler = logging.StreamHandler(sys.stdout)
-
-    class JsonFormatter(logging.Formatter):
-        def format(self, record):
-            log_entry = {
-                "timestamp": datetime.utcnow().isoformat(),
-                "level": record.levelname,
-                "service": service_name,
-                "message": record.getMessage(),
-            }
-            return json.dumps(log_entry)
-
-    handler.setFormatter(JsonFormatter())
+    formatter = logging.Formatter(
+        f"%(asctime)s | {service_name.upper()} | %(levelname)s | %(message)s"
+    )
+    handler.setFormatter(formatter)
     logger.addHandler(handler)
+
     return logger

@@ -1,0 +1,94 @@
+# =====================
+# PYTHON
+# =====================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+*.db
+.env
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+pip-wheel-metadata/
+
+# =====================
+# EDITOR / SYSTEM
+# =====================
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+*.bak
+Thumbs.db
+
+# =====================
+# DOCKER
+# =====================
+*.pid
+*.seed
+*.tar
+*.gz
+*.zip
+docker-compose.override.yml
+# local build cache folders
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.coverage
+**/.tox/
+**/.pytest_cache/
+
+# =====================
+# KUBERNETES / DEPLOYMENT
+# =====================
+# Ignore local manifests overrides
+**/manifests/*.local.yaml
+**/manifests/*.backup.yaml
+**/k8s/*.tmp.yaml
+**/manifests/secret.yaml
+
+
+# =====================
+# LOGS / TEMP FILES
+# =====================
+*.log
+*.out
+*.tmp
+tmp/
+temp/
+*.pid
+*.sock
+nohup.out
+
+# =====================
+# MEDIA / UPLOADS
+# =====================
+uploads/
+*.mp4
+*.mp3
+*.wav
+*.avi
+*.mkv
+*.mov
+
+# =====================
+# BUILD ARTIFACTS
+# =====================
+dist/
+build/
+.cache/
+__pycache__/
+
+# =====================
+# OS FILES
+# =====================
+.DS_Store
+ehthumbs.db
+Icon?
+Desktop.ini
