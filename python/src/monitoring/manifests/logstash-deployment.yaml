@@ -1,0 +1,41 @@
+# monitoring/manifests/logstash-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:8.15.0
+          ports:
+            - containerPort: 5000
+              protocol: UDP
+          volumeMounts:
+            - name: logstash-pipeline
+              mountPath: /usr/share/logstash/pipeline
+      volumes:
+        - name: logstash-pipeline
+          configMap:
+            name: logstash-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  namespace: monitoring
+spec:
+  ports:
+    - port: 5000
+      protocol: UDP
+  selector:
+    app: logstash

@@ -1,0 +1,25 @@
+# monitoring/manifests/logstash-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: monitoring
+data:
+  logstash.conf: |
+    input {
+      udp {
+        port => 5000
+        codec => json
+      }
+    }
+
+    filter { }
+
+    output {
+      elasticsearch {
+        hosts => ["http://elasticsearch.monitoring.svc.cluster.local:9200"]
+        index => "services-logs-%{+YYYY.MM.dd}"
+      }
+
+      stdout { codec => rubydebug }
+    }

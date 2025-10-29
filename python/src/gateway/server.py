@@ -5,7 +5,7 @@ from auth import validate
 from auth_svc import access
 from storage import util
 from bson.objectid import ObjectId
-from logger import get_logger
+from monitoring.logger import get_logger
 
 logger = get_logger("gateway")
 
