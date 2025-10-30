@@ -1,0 +1,17 @@
+
+elasticsearch:
+  replicas: 1
+  minimumMasterNodes: 1
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+
+kibana:
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - kibana.local
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /$1

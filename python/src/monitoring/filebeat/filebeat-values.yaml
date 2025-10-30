@@ -1,0 +1,48 @@
+filebeatConfig:
+  filebeat.yml: |
+    filebeat.inputs:
+      - type: container
+        paths:
+          - /var/lib/docker/containers/*/*.log
+        processors:
+          - add_kubernetes_metadata:
+              host: ${NODE_NAME}
+              matchers:
+                - logs_path:
+                    logs_path: "/var/lib/docker/containers/"
+
+    output.elasticsearch:
+      hosts: ["https://elasticsearch-es-http:9200"]
+      username: "elastic"
+      password: ${ELASTIC_PASSWORD}
+      ssl:
+        certificate_authorities: ["/mnt/elastic/ca.crt"]
+
+extraEnvs:
+  - name: ELASTICSEARCH_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch-master-credentials
+        key: username
+  - name: ELASTICSEARCH_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: elasticsearch-master-credentials
+        key: password
+  - name: NODE_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+
+extraVolumes:
+  - name: elastic-certs
+    secret:
+      secretName: elasticsearch-es-http-ca-internal
+      items:
+        - key: tls.crt
+          path: ca.crt
+
+extraVolumeMounts:
+  - name: elastic-certs
+    mountPath: /mnt/elastic
+    readOnly: true
