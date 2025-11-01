@@ -1,3 +1,7 @@
+# ==========================================
+# Filebeat Helm Values - ECK integration
+# ==========================================
+
 filebeatConfig:
   filebeat.yml: |
     filebeat.inputs:
@@ -11,29 +15,29 @@ filebeatConfig:
                 - logs_path:
                     logs_path: "/var/lib/docker/containers/"
 
+    # ---- Output to Elasticsearch ----
     output.elasticsearch:
       hosts: ["https://elasticsearch-es-http:9200"]
-      username: "elastic"
-      password: ${ELASTIC_PASSWORD}
+      username: ${ELASTICSEARCH_USERNAME}
+      password: ${ELASTICSEARCH_PASSWORD}
       ssl:
         certificate_authorities: ["/mnt/elastic/ca.crt"]
 
+# ---- Environment variables ----
 extraEnvs:
   - name: ELASTICSEARCH_USERNAME
-    valueFrom:
-      secretKeyRef:
-        name: elasticsearch-master-credentials
-        key: username
+    value: "elastic"
   - name: ELASTICSEARCH_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: elasticsearch-master-credentials
-        key: password
+        name: elasticsearch-es-elastic-user
+        key: elastic
   - name: NODE_NAME
     valueFrom:
       fieldRef:
         fieldPath: spec.nodeName
 
+# ---- Mount Elasticsearch CA cert ----
 extraVolumes:
   - name: elastic-certs
     secret:

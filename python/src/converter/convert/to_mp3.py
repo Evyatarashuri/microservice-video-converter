@@ -1,6 +1,6 @@
 import tempfile, moviepy.editor, os, pika, json
 from bson.objectid import ObjectId
-from monitoring.logger import get_logger
+from shared.logger import get_logger
 
 logger = get_logger("converter")
 

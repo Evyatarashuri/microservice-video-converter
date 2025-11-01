@@ -1,5 +1,5 @@
 import pika, json
-from monitoring.logger import get_logger
+from logger import get_logger
 
 logger = get_logger("storage")
 

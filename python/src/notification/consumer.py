@@ -1,11 +1,23 @@
 import pika, sys, os, time
 from send import email
+from shared import logger
 
+logger = logger.get_logger("notification")
 
 def main():
-    # rabbitmq connection
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
-    channel = connection.channel()
+
+    logger.info("Starting notification service...")
+
+    try:
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host="rabbitmq"))
+        channel = connection.channel()
+        logger.info("Connected to RabbitMQ.")
+    except Exception as e:
+        logger.error(f"Failed to connect to RabbitMQ: {e}")
+        return
+    
+    channel.queue_declare(queue=os.environ.get("MP3_QUEUE"), durable=True)
 
     def callback(ch, method, properties, body):
         err = email.notification(body)
@@ -19,7 +31,7 @@ def main():
         on_message_callback=callback
     )
 
-    print("Waiting for messages. To exit press CTRL+C")
+    logger.info("Waiting for messages. To exit press CTRL+C")
 
     channel.start_consuming()
 

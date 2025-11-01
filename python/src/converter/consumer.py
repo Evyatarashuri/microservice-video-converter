@@ -2,11 +2,9 @@ import pika, sys, os, time
 from pymongo import MongoClient
 import gridfs
 from convert import to_mp3
-from monitoring.logger import get_logger
-
+from shared.logger import get_logger
 
 logger = get_logger("converter")
-
 
 def main():
 
@@ -32,6 +30,8 @@ def main():
     except Exception as e:
         logger.error(f"Failed to connect to RabbitMQ: {e}")
         return
+
+    channel.queue_declare(queue=os.environ.get("VIDEO_QUEUE"), durable=True)
 
     # GridFS setup
     fs_videos = gridfs.GridFS(db_videos)

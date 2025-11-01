@@ -10,12 +10,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir --upgrade pip
 
 WORKDIR /app
-COPY requirements.txt /app
+COPY gateway/requirements.txt /app/gateway/requirements.txt
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r gateway/requirements.txt
 
-COPY . /app
+COPY gateway /app/gateway
+COPY shared /app/shared
+
+ENV PYTHONPATH=/app
 
 EXPOSE 8080
 
-CMD ["python3", "server.py"]
+CMD ["python3", "gateway/server.py"]
+
+
+# Running docker build only from src directory
+
+# docker build -t evyatar213/gateway:latest -f gateway/Dockerfile .
+# docker push evyatar213/gateway:latest
+# kubectl apply -f gateway/manifests/
+
+# kubectl rollout restart deployment gateway

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Upload your video 🎬</h3>
+<form method="POST" enctype="multipart/form-data" action="/upload">
+  <div class="mb-3">
+    <input type="file" name="file" accept="video/mp4" class="form-control" required>
+  </div>
+  <button class="btn btn-warning">Upload & Convert to MP3</button>
+</form>
+{% endblock %}

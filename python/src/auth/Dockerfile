@@ -11,12 +11,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir --upgrade pip
 
 WORKDIR /app
-COPY requirements.txt /app
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY auth/requirements.txt /app/auth/requirements.txt
 
-COPY . /app
+RUN pip install --no-cache-dir -r auth/requirements.txt
+
+COPY auth /app/auth
+COPY shared /app/shared
+
+ENV PYTHONPATH=/app
 
 EXPOSE 5000
 
-CMD ["python3", "server.py"]
+CMD ["python3", "auth/server.py"]
+
+# Running docker build only from src directory
+
+# docker build -t evyatar213/auth:latest -f auth/Dockerfile .
+# docker push evyatar213/auth:latest
+# kubectl rollout restart deployment auth
+
+# kubectl apply -f auth/manifests/
+
