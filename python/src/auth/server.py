@@ -1,6 +1,10 @@
 import jwt, datetime, os
 from flask import Flask, request
 from flask_mysqldb import MySQL
+import bcrypt, jsonify
+from shared.logger import get_logger
+
+logger = get_logger("auth")
 
 server = Flask(__name__)
 mysql = MySQL(server)
@@ -15,31 +19,61 @@ server.config['MYSQL_PORT'] = int(os.getenv('MYSQL_PORT', 3306))
 # login function route
 @server.route('/login', methods=['POST'])
 def login():
-    auth = request.authorization
-    print("Authorization header received:", auth)
-    if not auth:
-        return "Missing credentials", 401
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    logger.info("Login attempt for user: %s", username)
 
-
-    # fetch user from db
     cur = mysql.connection.cursor()
     res = cur.execute(
-        "SELECT email, password FROM users WHERE email=%s", (auth.username,)
+        "SELECT email, password FROM users WHERE email=%s", (username,)
     )
-
 
     if res > 0:
         user_row = cur.fetchone()
         email = user_row[0]
-        password = user_row[1]
+        db_password = user_row[1]
 
-        if auth.username != email or auth.password != password:
-            return "Invalid credentials", 401
+        if password == db_password:
+            token = createJWT(username, os.environ.get('JWT_SECRET'), True)
+            return token
         else:
-            return createJWT(auth.username, os.environ.get('JWT_SECRET'), True)
+            return "Invalid credentials", 401
     else:
         return "Invalid credentials", 401
+
     
+
+# ==== register route ====
+@server.route("/register", methods=["POST"])
+def register():
+
+    logger.info("Received registration request")
+
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    cur = mysql.connection.cursor()
+
+    res = cur.execute(
+        "SELECT email FROM users WHERE email=%s", (username,)
+    )
+    if res:
+        return "User already exists", 409
+    
+    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    cur.execute(
+        "INSERT INTO users (email, password) VALUES (%s, %s)",
+        (username, hashed_pw)
+    )
+    mysql.connection.commit()
+    cur.close()
+
+    return jsonify({"message": "User registered successfully"}), 201
+
+
 
 # validate jwt function route
 @server.route('/validate', methods=['POST'])
