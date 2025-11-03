@@ -19,7 +19,7 @@ def upload(f, fs, channel, access):
         "username": access["username"],
     }
 
-    logger.debug(f"Publishing message to RabbitMQ: {message}")
+    logger.info(f"Publishing message to RabbitMQ: {message}")
 
     try:
         connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
