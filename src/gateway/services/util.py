@@ -1,5 +1,5 @@
 import pika, json
-from logger import get_logger
+from shared.logger import get_logger
 
 logger = get_logger("storage")
 

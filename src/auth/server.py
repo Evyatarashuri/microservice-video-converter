@@ -19,9 +19,16 @@ server.config['MYSQL_PORT'] = int(os.getenv('MYSQL_PORT', 3306))
 # login function route
 @server.route('/login', methods=['POST'])
 def login():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    
+    auth = request.authorization
+    logger.info(f"AUTH HEADER: {auth}")
+
+    if not auth or not auth.username or not auth.password:
+        logger.warning("Missing credentials")
+        return "Missing credentials", 401
+
+    username = auth.username
+    password = auth.password
+
     logger.info("Login attempt for user: %s", username)
 
     cur = mysql.connection.cursor()

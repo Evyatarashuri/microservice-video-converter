@@ -28,6 +28,9 @@ CMD ["python3", "gateway/server.py"]
 
 # docker build -t evyatar213/gateway:latest -f gateway/Dockerfile .
 # docker push evyatar213/gateway:latest
-# kubectl apply -f gateway/manifests/
-
 # kubectl rollout restart deployment gateway
+
+# kubectl apply -f gateway/manifests/
+# kubectl delete -f gateway/manifests/
+
+

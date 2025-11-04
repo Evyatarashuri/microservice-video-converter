@@ -1,13 +1,6 @@
-import os, gridfs, pika, json
-from flask import Blueprint, request, send_file, render_template, redirect, url_for, send_file, flash
-from flask_pymongo import PyMongo
-from auth import validate
-from api import login_api, upload_api
-from python.src.gateway.clients.rest import auth_client
-from services import util
-from bson.objectid import ObjectId
-from shared.logger import get_logger
-import requests
+import os, requests
+from flask import Blueprint, request, render_template, redirect, url_for, flash
+from shared.logger import get_logger 
 
 logger = get_logger("register_api")
 
