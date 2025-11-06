@@ -37,16 +37,28 @@ def main():
     fs_videos = gridfs.GridFS(db_videos)
     fs_mp3s = gridfs.GridFS(db_mp3s)
 
-
     def callback(ch, method, properties, body):
-        logger.debug(f"Received message: {body}.")
-        err = to_mp3.start(body, fs_videos, fs_mp3s, ch)
-        if err:
-            logger.error(f"Error processing message: {err}")
-            ch.basic_nack(delivery_tag=method.delivery_tag)
-        else:
-            logger.info("Conversion successful.")
-            ch.basic_ack(delivery_tag=method.delivery_tag)
+        MAX_RETRIES = 3
+
+        for attempt in range(MAX_RETRIES):
+            try:
+                logger.debug(f"Processing message (attempt {attempt+1}): {body}")
+                err = to_mp3.start(body, fs_videos, fs_mp3s, ch)
+
+                if not err:
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    logger.info("Conversion successful.")
+                    return
+
+                raise Exception(err)
+
+            except Exception as e:
+                logger.error(f"Attempt {attempt+1} failed: {e}")
+                time.sleep(2 ** attempt)  # Exponential backoff (2s, 4s, 8s)
+
+        logger.error(f"Message failed after {MAX_RETRIES} attempts — skipping.")
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+
 
     channel.basic_consume(
         queue=os.environ.get("VIDEO_QUEUE"),

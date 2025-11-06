@@ -4,7 +4,6 @@ metadata:
   name: auth
   labels:
     app: auth
-
 spec:
   replicas: 1
   selector:
@@ -29,3 +28,29 @@ spec:
                 name: auth-configmap
             - secretRef:
                 name: auth-secret
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-configmap
+                  key: POSTGRES_HOST
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-configmap
+                  key: POSTGRES_USER
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-configmap
+                  key: POSTGRES_DB
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secret
+                  key: POSTGRES_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: auth-secret
+                  key: JWT_SECRET

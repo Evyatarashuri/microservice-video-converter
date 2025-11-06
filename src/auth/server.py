@@ -1,122 +1,119 @@
-import jwt, datetime, os
-from flask import Flask, request
-from flask_mysqldb import MySQL
-import bcrypt, jsonify
+import os, jwt, datetime, bcrypt
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
 from shared.logger import get_logger
+from models import User
 
 logger = get_logger("auth")
 
+# ==============================
+# Flask setup
+# ==============================
 server = Flask(__name__)
-mysql = MySQL(server)
 
-# config
-server.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'localhost')
-server.config['MYSQL_USER'] = os.getenv('MYSQL_USER', 'root')
-server.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD', '')
-server.config['MYSQL_DB'] = os.getenv('MYSQL_DB', 'auth_db')
-server.config['MYSQL_PORT'] = int(os.getenv('MYSQL_PORT', 3306))
+# ==============================
+# Database configuration
+# (values are injected via ConfigMap + Secret)
+# ==============================
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PW = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "postgres")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "auth_db")
+JWT_SECRET = os.getenv("JWT_SECRET")
 
-# login function route
-@server.route('/login', methods=['POST'])
+server.config["SQLALCHEMY_DATABASE_URI"] = (
+    f"postgresql://{POSTGRES_USER}:{POSTGRES_PW}@{POSTGRES_HOST}/{POSTGRES_DB}"
+)
+server.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(server)
+
+
+# ==============================
+# Helper functions
+# ==============================
+def create_jwt(username, secret, is_admin):
+    payload = {
+        "username": username,
+        "exp": datetime.datetime.now(tz=datetime.timezone.utc)
+        + datetime.timedelta(days=1),
+        "iat": datetime.datetime.now(tz=datetime.timezone.utc),
+        "admin": is_admin,
+    }
+    return jwt.encode(payload, secret, algorithm="HS256")
+
+
+# ==============================
+# Routes
+# ==============================
+
+@server.route("/register", methods=["POST"])
+def register():
+    logger.info("Received registration request")
+
+    data = request.get_json()
+    email = data.get("username")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "Missing fields"}), 400
+
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({"error": "User already exists"}), 409
+
+    hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    new_user = User(email=email, password=hashed_pw)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    logger.info(f"User {email} registered successfully")
+    return jsonify({"message": "User registered successfully"}), 201
+
+
+@server.route("/login", methods=["POST"])
 def login():
     auth = request.authorization
     logger.info(f"AUTH HEADER: {auth}")
 
     if not auth or not auth.username or not auth.password:
         logger.warning("Missing credentials")
-        return "Missing credentials", 401
+        return jsonify({"error": "Missing credentials"}), 401
 
-    username = auth.username
-    password = auth.password
+    user = User.query.filter_by(email=auth.username).first()
 
-    logger.info("Login attempt for user: %s", username)
+    if not user:
+        return jsonify({"error": "Invalid credentials"}), 401
 
-    cur = mysql.connection.cursor()
-    res = cur.execute(
-        "SELECT email, password FROM users WHERE email=%s", (username,)
-    )
-
-    if res > 0:
-        user_row = cur.fetchone()
-        email = user_row[0]
-        db_password = user_row[1]
-
-        if password == db_password:
-            token = createJWT(username, os.environ.get('JWT_SECRET'), True)
-            return token
-        else:
-            return "Invalid credentials", 401
+    if bcrypt.checkpw(auth.password.encode("utf-8"), user.password.encode("utf-8")):
+        token = create_jwt(user.email, JWT_SECRET, True)
+        logger.info(f"Login successful for user: {user.email}")
+        return jsonify({"token": token}), 200
     else:
-        return "Invalid credentials", 401
-
-    
-
-# ==== register route ====
-@server.route("/register", methods=["POST"])
-def register():
-
-    logger.info("Received registration request")
-
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
-
-    cur = mysql.connection.cursor()
-
-    res = cur.execute(
-        "SELECT email FROM users WHERE email=%s", (username,)
-    )
-    if res:
-        return "User already exists", 409
-    
-    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-    cur.execute(
-        "INSERT INTO users (email, password) VALUES (%s, %s)",
-        (username, hashed_pw)
-    )
-    mysql.connection.commit()
-    cur.close()
-
-    return jsonify({"message": "User registered successfully"}), 201
+        logger.warning(f"Invalid credentials for user: {auth.username}")
+        return jsonify({"error": "Invalid credentials"}), 401
 
 
-
-# validate jwt function route
-@server.route('/validate', methods=['POST'])
+@server.route("/validate", methods=["POST"])
 def validate():
-    encoded_jwt = request.headers["Authorization"]
+    encoded_jwt = request.headers.get("Authorization")
 
     if not encoded_jwt:
-        return "Missing credentials", 401
-    
-    encoded_jwt = encoded_jwt.split(" ")[1]
+        return jsonify({"error": "Missing credentials"}), 401
 
     try:
-        decoded = jwt.decode(
-            encoded_jwt,
-            os.environ.get('JWT_SECRET'),
-            algorithms=['HS256']
-        )
-    except:
-        return "Not authorized", 403
-    
-    return decoded, 200
+        token = encoded_jwt.split(" ")[1]
+        decoded = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return jsonify(decoded), 200
+    except Exception as e:
+        logger.error(f"JWT validation failed: {e}")
+        return jsonify({"error": "Not authorized"}), 403
 
 
-# create jwt function
-def createJWT(username, secret, authz):
-    return jwt.encode(
-        {
-            'username': username,
-            'exp': datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(days=1),
-            'iat': datetime.datetime.now(tz=datetime.timezone.utc),
-            'admin': authz
-        },
-        secret,
-        algorithm='HS256'
-    )
-
-
-if __name__ == '__main__':
-    server.run(host='0.0.0.0', port=5000)
+# ==============================
+# Application entry point
+# ==============================
+if __name__ == "__main__":
+    logger.info("Starting auth service...")
+    server.run(host="0.0.0.0", port=5000)

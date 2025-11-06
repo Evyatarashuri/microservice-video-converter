@@ -3,6 +3,15 @@ kind: ConfigMap
 metadata:
   name: auth-configmap
 data:
+  # Database configuration
+  POSTGRES_HOST: postgres
+  POSTGRES_USER: auth_user
+  POSTGRES_DB: auth_db
+
+  # Optional: port definition (Postgres default is 5432)
+  POSTGRES_PORT: "5432"
+
+  # Keep MySQL keys for backward compatibility (not used anymore)
   MYSQL_HOST: host.minikube.internal
   MYSQL_USER: auth_user
   MYSQL_DB: auth

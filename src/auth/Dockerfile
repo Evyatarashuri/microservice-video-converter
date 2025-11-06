@@ -23,7 +23,12 @@ ENV PYTHONPATH=/app
 
 EXPOSE 5000
 
-CMD ["python3", "auth/server.py"]
+# =============================
+# Alembic migration integration
+# =============================
+# Run database migrations automatically before starting the app
+# This will only apply pending migrations (it’s idempotent)
+CMD alembic upgrade head && python3 auth/server.py
 
 # Running docker build only from src directory
 
@@ -32,4 +37,3 @@ CMD ["python3", "auth/server.py"]
 # kubectl rollout restart deployment auth
 
 # kubectl apply -f auth/manifests/
-
