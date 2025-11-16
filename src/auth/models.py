@@ -1,4 +1,4 @@
-from server import db
+from auth.db import db
 from datetime import datetime, timezone
 
 class User(db.Model):

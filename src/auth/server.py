@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from shared.logger import get_logger
 from models import User
+from auth.db import db
 
 logger = get_logger("auth")
 
@@ -26,7 +27,7 @@ server.config["SQLALCHEMY_DATABASE_URI"] = (
 )
 server.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-db = SQLAlchemy(server)
+db.init_app(server)
 
 
 # ==============================
@@ -47,6 +48,7 @@ def create_jwt(username, secret, is_admin):
 # Routes
 # ==============================
 
+# ====================== REGISTER ======================
 @server.route("/register", methods=["POST"])
 def register():
     logger.info("Received registration request")
@@ -71,7 +73,7 @@ def register():
     logger.info(f"User {email} registered successfully")
     return jsonify({"message": "User registered successfully"}), 201
 
-
+# ====================== LOGIN ======================
 @server.route("/login", methods=["POST"])
 def login():
     auth = request.authorization

@@ -17,6 +17,8 @@ COPY auth/requirements.txt /app/auth/requirements.txt
 RUN pip install --no-cache-dir -r auth/requirements.txt
 
 COPY auth /app/auth
+COPY auth/alembic.ini /app/
+COPY auth/migrations /app/migrations
 COPY shared /app/shared
 
 ENV PYTHONPATH=/app
