@@ -1,6 +1,6 @@
 import os, requests
 from flask import Blueprint, request, render_template, redirect, url_for, flash
-from shared.logger import get_logger 
+from shared.logger import get_logger
 
 logger = get_logger("register_api")
 
@@ -22,11 +22,10 @@ def register():
     if not username or not password:
         logger.warning("Registration failed: Missing username or password")
         flash("Missing username or password", "danger")
-        return redirect(url_for("register")), 400
-    
+        return redirect(url_for("register_api.register")), 400
+
     try:
         # Call the auth service microservice
-
         auth_url = os.getenv("AUTH_SERVICE_URL", "http://auth:5000/register")
         response = requests.post(auth_url, json={"username": username, "password": password})
 
@@ -34,14 +33,14 @@ def register():
         if response.status_code == 201:
             flash("Registration successful!", "success")
             logger.info(f"User registered successfully: {username}")
-            return redirect(url_for("login"))
+            return redirect(url_for("login_api.login"))
         else:
             msg = response.json().get("message", "Registration failed")
             flash(msg, "danger")
             logger.error(f"User registration failed: {username}: {msg}")
-            return redirect(url_for("register")), 400
+            return redirect(url_for("register_api.register")), 400
 
     except Exception as e:
         logger.error(f"Error occurred during registration: {e}")
         flash("An error occurred", "danger")
-        return redirect(url_for("register")), 500
+        return redirect(url_for("register_api.register")), 500

@@ -17,20 +17,19 @@ def login():
 
     username = request.form.get("username")
     password = request.form.get("password")
-    
+
     logger.info(f"Received credentials: username={username}, password={'***' if password else None}")
     logger.info(f"Attempting login for user: {username}")
 
     try:
         response = requests.post(
-            f"http://{os.getenv('AUTH_SVC_ADDRESS')}/login",
+            f"http://{os.getenv('AUTH_SVC_ADDRESS', 'auth:5000')}/login",
             auth=(username, password)
         )
 
         if response.status_code == 200:
             token = response.text
             logger.info(f"Login successful for user: {username}")
-
 
             session["token"] = token
             resp = make_response(redirect(url_for("upload_api.upload")))
@@ -66,7 +65,6 @@ def login():
 @login_api.route("/logout")
 def logout():
     """Logout route that clears the session and cookies"""
-    
     logger.info("User logged out")
 
     resp = make_response(redirect(url_for("login_api.login")))

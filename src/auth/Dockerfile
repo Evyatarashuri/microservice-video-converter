@@ -4,7 +4,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     pkg-config \
     python3-dev \
-    default-libmysqlclient-dev \
+    libpq-dev \
+    netcat-openbsd \
     build-essential \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -13,7 +14,6 @@ RUN pip install --no-cache-dir --upgrade pip
 WORKDIR /app
 
 COPY auth/requirements.txt /app/auth/requirements.txt
-
 RUN pip install --no-cache-dir -r auth/requirements.txt
 
 COPY auth /app/auth
@@ -25,17 +25,15 @@ ENV PYTHONPATH=/app
 
 EXPOSE 5000
 
-# =============================
-# Alembic migration integration
-# =============================
-# Run database migrations automatically before starting the app
-# This will only apply pending migrations (it’s idempotent)
-CMD alembic upgrade head && python3 auth/server.py
+# ==========================================
+# Wait for PostgreSQL + Run Alembic + Start Flask
+# ==========================================
+CMD sh -c "until nc -z $POSTGRES_HOST 5432; do echo 'Waiting for PostgreSQL...'; sleep 2; done; echo 'PostgreSQL is up!'; alembic upgrade head; python3 auth/server.py"
 
-# Running docker build only from src directory
-
+# ===========================
+# Docker build instructions
+# ===========================
 # docker build -t evyatar213/auth:latest -f auth/Dockerfile .
 # docker push evyatar213/auth:latest
 # kubectl rollout restart deployment auth
-
 # kubectl apply -f auth/manifests/

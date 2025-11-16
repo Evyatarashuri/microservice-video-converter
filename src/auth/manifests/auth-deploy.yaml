@@ -24,33 +24,13 @@ spec:
           ports:
             - containerPort: 5000
           envFrom:
+            # Auth service configs (JWT etc)
             - configMapRef:
                 name: auth-configmap
             - secretRef:
                 name: auth-secret
-          env:
-            - name: POSTGRES_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: auth-configmap
-                  key: POSTGRES_HOST
-            - name: POSTGRES_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: auth-configmap
-                  key: POSTGRES_USER
-            - name: POSTGRES_DB
-              valueFrom:
-                configMapKeyRef:
-                  name: auth-configmap
-                  key: POSTGRES_DB
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: auth-secret
-                  key: POSTGRES_PASSWORD
-            - name: JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: auth-secret
-                  key: JWT_SECRET
+            # Postgres configs (DB credentials)
+            - configMapRef:
+                name: postgres-config
+            - secretRef:
+                name: postgres-secret
