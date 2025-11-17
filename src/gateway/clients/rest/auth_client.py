@@ -1,4 +1,4 @@
-import os, requests
+import os, requests, json
 
 # === LOGIN ===
 def login(request):
@@ -20,15 +20,23 @@ def login(request):
 
 # === VALIDATE TOKEN ===
 def validate_token(request):
-    if "Authorization" not in request.headers:
-        return None, ("Missing authorization header", 401)
-    
-    token = request.headers["Authorization"]
+    token = request.headers.get("Authorization")
+
     if not token:
-        return None, ("Empty token", 401)
-    
+        cookie_token = request.cookies.get("access_token")
+        if not cookie_token:
+            return None, ("Missing authorization (no header or cookie)", 401)
+        
+        try:
+            data = json.loads(cookie_token)
+            token = data.get("token")
+        except json.JSONDecodeError:
+            token = cookie_token
+
+        token = f"Bearer {token}"
+
     response = requests.post(
-        f"http://{os.getenv('AUTH_SVC_ADDRESS')}/validate",
+        f"http://{os.getenv('AUTH_SVC_ADDRESS', 'auth:5000')}/validate",
         headers={"Authorization": token}
     )
 

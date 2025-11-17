@@ -11,7 +11,7 @@ def upload(f, fs, channel, access):
         logger.info(f"File stored in GridFS with ID: {fid}")
     except Exception as e:
         logger.error(f"Failed to store file in GridFS: {e}")
-        return f"Internal server error: {e}", 500
+        return None
 
     message = {
         "video_fid": str(fid),
@@ -37,7 +37,9 @@ def upload(f, fs, channel, access):
         connection.close()
         logger.info(f"Message published to RabbitMQ for file ID: {fid}")
 
+        return str(fid)
+
     except Exception as e:
         fs.delete(fid)
         logger.error(f"Failed to publish message to RabbitMQ: {e}")
-        return f"Internal server error: {e}", 500
+        return None

@@ -1,5 +1,14 @@
-{% extends "base.html" %}
-{% block content %}
-<h3>Your file is ready 🎧</h3>
-<a href="/download?fid={{ fid }}" class="btn btn-success">Download MP3</a>
-{% endblock %}
+{% if status == "processing" %}
+  <div class="alert alert-warning">
+    🎧 Conversion in progress... please refresh this page in a few seconds.
+  </div>
+{% elif status == "ready" %}
+  <div class="alert alert-success">
+    ✅ Conversion complete! Click below to download your MP3.
+  </div>
+  <a href="{{ url_for('download_api.download_mp3', mp3_fid=mp3_fid) }}" class="btn btn-success">
+    Download MP3
+  </a>
+{% else %}
+  <p>No conversion in progress.</p>
+{% endif %}

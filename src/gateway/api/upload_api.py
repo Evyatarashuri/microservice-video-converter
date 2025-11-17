@@ -35,6 +35,7 @@ def create_upload_blueprint(rabbit_connection):
         if request.method == "GET":
             return render_template("upload.html")
 
+        # ======== Token Validation ========
         access, err = auth_client.validate_token(request)
         if err:
             flash("Authorization failed", "danger")
@@ -42,12 +43,12 @@ def create_upload_blueprint(rabbit_connection):
             return redirect(url_for("login_api.login"))
 
         access = json.loads(access)
-
         if not access.get("admin"):
             flash("Not authorized", "danger")
             logger.warning("Unauthorized upload attempt")
             return redirect(url_for("login_api.login"))
 
+        # ======== File Handling ========
         file = request.files.get("file")
         if not file:
             flash("No file uploaded.", "danger")
@@ -56,16 +57,20 @@ def create_upload_blueprint(rabbit_connection):
 
         try:
             channel = rabbit_connection.get_channel()
-            err = util.upload(file, fs_videos, channel, access)
-            if err:
-                raise Exception(err)
+            file_id = util.upload(file, fs_videos, channel, access)
+            if not file_id:
+                raise Exception("Upload failed (no file_id returned)")
+
         except Exception as e:
             logger.error(f"Upload failed: {e}")
             flash("File upload failed", "danger")
             return redirect(url_for("upload_api.upload"))
 
+        # ======== Success ========
         flash("File uploaded successfully!", "success")
-        logger.info("File uploaded successfully")
-        return redirect(url_for("download_api.download_page"))
+        logger.info(f"File uploaded successfully with ID: {file_id}")
+
+        # Redirect to download page with fid param
+        return redirect(url_for("download_api.download_page", fid=file_id))
 
     return upload_api
