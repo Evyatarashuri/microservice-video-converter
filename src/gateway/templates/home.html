@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container text-center mt-5">
+  <h1 class="fw-bold text-primary">🎵 MP3 Converter</h1>
+  <p class="lead text-secondary mt-3">
+    Convert your favorite videos into high-quality MP3s easily and securely.
+  </p>
+
+  <div class="mt-4">
+    {% if session.get("token") %}
+      <a href="/upload" class="btn btn-primary btn-lg shadow-sm me-3">Upload Video</a>
+      <a href="/logout" class="btn btn-outline-secondary btn-lg">Logout</a>
+    {% else %}
+      <a href="/login" class="btn btn-primary btn-lg shadow-sm me-3">Login</a>
+      <a href="/register" class="btn btn-outline-secondary btn-lg">Sign Up</a>
+    {% endif %}
+  </div>
+
+  <hr class="my-5">
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <h4 class="text-dark mb-3">How It Works</h4>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h5 class="card-title text-primary">1️⃣ Upload</h5>
+              <p class="card-text text-muted">Choose your video file and upload it securely to our servers.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h5 class="card-title text-primary">2️⃣ Convert</h5>
+              <p class="card-text text-muted">We automatically process your video and convert it to MP3 format.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h5 class="card-title text-primary">3️⃣ Download</h5>
+              <p class="card-text text-muted">Get your converted MP3 file instantly and enjoy your music anywhere.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="mt-5 text-muted small">
+    <p>© {{ 2025 }} MP3 Converter — Built with Flask, MongoDB & RabbitMQ</p>
+  </footer>
+</div>
+{% endblock %}

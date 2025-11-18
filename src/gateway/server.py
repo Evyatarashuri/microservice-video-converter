@@ -1,7 +1,7 @@
 import os
 import json
 import gridfs
-from flask import Flask
+from flask import Flask, render_template
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 
@@ -65,6 +65,9 @@ server.register_blueprint(register_api)
 server.register_blueprint(upload_blueprint)
 server.register_blueprint(download_api)
 
+@server.route("/")
+def home():
+    return render_template("home.html")
 
 # =========================================
 # Application Entry Point
