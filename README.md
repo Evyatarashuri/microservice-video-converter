@@ -21,4 +21,12 @@ JWT Authentication (via auth service)
 Logging (structured logs from all services centralized in Elasticsearch)
 
 ## Photos
+
+Home Page
+![Home Page](files/photo3.png)
+
+Upload Page
 ![Upload your video](files/photo1.png)
+
+Download Page
+![Conversion in progress](files/photo2.png)
