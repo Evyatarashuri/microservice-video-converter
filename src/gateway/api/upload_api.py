@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import gridfs
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_pymongo import PyMongo
@@ -71,6 +72,7 @@ def create_upload_blueprint(rabbit_connection):
         logger.info(f"File uploaded successfully with ID: {file_id}")
 
         # Redirect to download page with fid param
+        time.sleep(1.5)
         return redirect(url_for("download_api.download_page", fid=file_id))
 
     return upload_api

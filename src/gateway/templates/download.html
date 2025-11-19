@@ -1,67 +1,150 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="container text-center mt-5">
 
-  <h2 class="text-primary fw-bold mb-4">🎶 Your MP3 is being prepared...</h2>
+  <!-- ========== LOADING SECTION ========== -->
+  <div id="loading" class="{% if status == 'ready' %}d-none{% endif %}">
+    <div class="alert alert-info shadow-sm rounded-pill py-3">
+      🎧 Conversion still in progress... Please wait a few seconds.
+    </div>
 
-  <!-- Loading Spinner -->
-  <div id="loading" class="mt-5">
-    <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status"></div>
-    <p class="text-muted mt-3">Please wait while we process your file...</p>
+    <h2 class="mt-5 text-primary fw-bold">
+      🎶 Your MP3 is being prepared...
+    </h2>
+
+    <div class="d-flex justify-content-center mt-4">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+    </div>
+
+    <p class="mt-4 text-muted">
+      This may take a short moment depending on the video length.
+    </p>
   </div>
 
-  <!-- Player (hidden at first) -->
-  <div id="player" class="d-none mt-5">
-    <h3 class="text-success mb-3">✅ Your MP3 is ready!</h3>
-    <audio id="audioPlayer" controls class="w-75 mb-4"></audio>
-    <div>
-      <a id="downloadBtn" class="btn btn-primary btn-lg me-3" download>⬇️ Download MP3</a>
-      <a href="/" class="btn btn-outline-secondary btn-lg">🏠 Back to Home</a>
+  <!-- ========== PLAYER SECTION ========== -->
+  <div id="player" class="{% if status != 'ready' %}d-none{% endif %}">
+    <div class="alert alert-success shadow-sm rounded-pill py-3">
+      ✅ Conversion complete! Your MP3 is ready.
+    </div>
+
+    <h2 class="text-success fw-bold mb-4">🎵 Listen or download your MP3</h2>
+
+    <div class="card shadow-sm p-4 mx-auto" style="max-width: 500px;">
+      <audio id="audioPlayer" controls class="w-100 mb-3">
+        <source src="" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+
+      <div class="d-flex justify-content-center gap-3">
+        <a id="downloadBtn" class="btn btn-success" href="#" download>⬇️ Download MP3</a>
+        <a class="btn btn-secondary" href="{{ url_for('upload_api.upload') }}">⬅️ Back to Upload</a>
+      </div>
     </div>
   </div>
 
+  <!-- ========== ERROR / NO FILE SECTION ========== -->
+  {% if not fid %}
+  <div class="alert alert-warning shadow-sm rounded-pill py-3 mt-4">
+    ⚠️ No file selected or invalid request.
+  </div>
+  <a class="btn btn-primary mt-2" href="{{ url_for('upload_api.upload') }}">
+    Go to Upload Page
+  </a>
+  {% endif %}
+
 </div>
 
+<!-- ==========================
+     STATUS CHECK SCRIPT (JS)
+=========================== -->
 <script>
-  // Get file id from Jinja context
   const fid = "{{ fid|safe }}";
-  console.log("File ID:", fid);
+  console.log("🎬 Initial video_fid:", fid);
 
-  const playerDiv = document.getElementById("player");
-  const loadingDiv = document.getElementById("loading");
   const audioPlayer = document.getElementById("audioPlayer");
   const downloadBtn = document.getElementById("downloadBtn");
+  const loadingSection = document.getElementById("loading");
+  const playerSection = document.getElementById("player");
 
-  if (fid && fid !== "None") {
-    async function checkStatus() {
-      try {
-        const response = await fetch(`/api/status?fid=${fid}`);
-        if (!response.ok) throw new Error("Status check failed");
-        const data = await response.json();
-        console.log("Status check:", data);
+  if (!fid || fid === "None") {
+    console.warn("❌ No valid fid provided.");  
+  } else {
+    checkStatus();
+  }
 
-        if (data.ready) {
-          // File ready: update the UI
-          const fileUrl = `/download/${fid}`;
-          audioPlayer.src = fileUrl;
-          downloadBtn.href = fileUrl;
+  async function fileExists(url) {
+    try {
+      const res = await fetch(url, { method: "HEAD" });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
 
-          loadingDiv.classList.add("d-none");
-          playerDiv.classList.remove("d-none");
-        } else {
-          setTimeout(checkStatus, 3000);
-        }
-      } catch (error) {
-        console.error("Polling error:", error);
+  let attempts = 0;
+  const maxAttempts = 30; // 30 * 3sec = 90 seconds max polling
+
+  async function checkStatus() {
+    attempts++;
+    console.log(`🔁 Checking conversion status... Attempt #${attempts}`);
+
+    try {
+      const response = await fetch(`/download/api/status?fid=${fid}`);
+      const data = await response.json();
+      console.log("📡 Response from /api/status:", data);
+
+      if (data.ready && data.mp3_fid) {
+        const mp3Url = `/download/mp3/${data.mp3_fid}`;
+        console.log("✅ MP3 ready:", mp3Url);
+        showPlayer(mp3Url);
+        return;
+      }
+
+      const fallbackUrl = `/download/mp3/${fid}`;
+      const exists = await fileExists(fallbackUrl);
+      if (exists) {
+        console.log("🎧 Found MP3 via fallback:", fallbackUrl);
+        showPlayer(fallbackUrl);
+        return;
+      }
+
+      if (attempts < maxAttempts) {
         setTimeout(checkStatus, 3000);
+      } else {
+        showTimeoutMessage();
+      }
+
+    } catch (err) {
+      console.error("❌ Error during polling:", err);
+      if (attempts < maxAttempts) {
+        setTimeout(checkStatus, 3000);
+      } else {
+        showTimeoutMessage();
       }
     }
-
-    // Start polling
-    checkStatus();
-  } else {
-    console.warn("No file ID found in template context!");
-    loadingDiv.innerHTML = `<p class="text-danger">Invalid file ID. Please try again.</p>`;
   }
+
+  function showPlayer(url) {
+    console.log("🎵 Showing player for:", url);
+    if (audioPlayer) audioPlayer.src = url;
+    if (downloadBtn) downloadBtn.href = url;
+    if (loadingSection) loadingSection.classList.add("d-none");
+    if (playerSection) playerSection.classList.remove("d-none");
+  }
+
+  function showTimeoutMessage() {
+    console.warn("⚠️ Timeout reached, stopping polling.");
+    loadingSection.innerHTML = `
+      <div class="alert alert-warning shadow-sm rounded-pill py-3">
+        ⚠️ It’s taking longer than expected.<br>
+        <button class="btn btn-sm btn-outline-primary mt-2" onclick="location.reload()">
+          🔄 Refresh Page
+        </button>
+      </div>`;
+  }
+
+  checkStatus();
 </script>
+
 {% endblock %}
