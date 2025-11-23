@@ -1,3 +1,11 @@
+## Project Management – Trello Board
+
+Track development progress, tasks, roadmap, and feature planning for this project:
+
+[![Trello Board](https://img.shields.io/badge/Trello-Board-026AA7?logo=trello&logoColor=white)](https://trello.com/b/68f63587436938c5fe93bd85)
+
+---
+
 # Overview
 
 This project implements a microservices-based media conversion platform written in Python.
