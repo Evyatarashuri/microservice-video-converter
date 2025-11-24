@@ -6,7 +6,7 @@
   <!-- ========== LOADING SECTION ========== -->
   <div id="loading" class="{% if status == 'ready' %}d-none{% endif %}">
     <div class="alert alert-info shadow-sm rounded-pill py-3">
-      🎧 Conversion still in progress... Please wait a few seconds.
+      Conversion still in progress...🎧 Please wait a few seconds.
     </div>
 
     <h2 class="mt-5 text-primary fw-bold">
@@ -25,7 +25,7 @@
   <!-- ========== PLAYER SECTION ========== -->
   <div id="player" class="{% if status != 'ready' %}d-none{% endif %}">
     <div class="alert alert-success shadow-sm rounded-pill py-3">
-      ✅ Conversion complete! Your MP3 is ready.
+      Conversion complete! Your MP3 is ready ✅
     </div>
 
     <h2 class="text-success fw-bold mb-4">🎵 Listen or download your MP3</h2>
@@ -46,7 +46,7 @@
   <!-- ========== ERROR / NO FILE SECTION ========== -->
   {% if not fid %}
   <div class="alert alert-warning shadow-sm rounded-pill py-3 mt-4">
-    ⚠️ No file selected or invalid request.
+    No file selected or invalid request ⚠️
   </div>
   <a class="btn btn-primary mt-2" href="{{ url_for('upload_api.upload') }}">
     Go to Upload Page
@@ -68,7 +68,7 @@
   const playerSection = document.getElementById("player");
 
   if (!fid || fid === "None") {
-    console.warn("❌ No valid fid provided.");  
+    console.warn("No valid fid provided");  
   } else {
     checkStatus();
   }
@@ -96,7 +96,7 @@
 
       if (data.ready && data.mp3_fid) {
         const mp3Url = `/download/mp3/${data.mp3_fid}`;
-        console.log("✅ MP3 ready:", mp3Url);
+        console.log("MP3 ready:", mp3Url);
         showPlayer(mp3Url);
         return;
       }
@@ -116,7 +116,7 @@
       }
 
     } catch (err) {
-      console.error("❌ Error during polling:", err);
+      console.error("Error during polling:", err);
       if (attempts < maxAttempts) {
         setTimeout(checkStatus, 3000);
       } else {
@@ -126,7 +126,7 @@
   }
 
   function showPlayer(url) {
-    console.log("🎵 Showing player for:", url);
+    console.log("Showing player for:", url);
     if (audioPlayer) audioPlayer.src = url;
     if (downloadBtn) downloadBtn.href = url;
     if (loadingSection) loadingSection.classList.add("d-none");

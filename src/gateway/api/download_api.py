@@ -88,18 +88,18 @@ def check_status():
             for attempt in range(3):
                 try:
                     fs_mp3s.get(ObjectId(mp3_fid))
-                    logger.info(f"✅ MP3 file ready in GridFS for fid={mp3_fid}")
+                    logger.info(f"MP3 file ready in GridFS for fid={mp3_fid}")
                     return jsonify({"ready": True, "mp3_fid": mp3_fid}), 200
                 except Exception:
                     logger.warning(f"GridFS not ready yet (attempt {attempt+1})")
                     time.sleep(2)
 
-            logger.info(f"⏳ Mapping found but file not yet ready in GridFS for fid={fid_string}")
+            logger.info(f"Mapping found but file not yet ready in GridFS for fid={fid_string}")
             return jsonify({"ready": False}), 200
 
         try:
             fs_mp3s.get(ObjectId(fid_string))
-            logger.info(f"✅ MP3 found directly in GridFS for fid={fid_string}")
+            logger.info(f"MP3 found directly in GridFS for fid={fid_string}")
             return jsonify({"ready": True, "mp3_fid": fid_string}), 200
         except Exception:
             pass
