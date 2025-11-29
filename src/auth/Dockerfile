@@ -20,6 +20,14 @@ COPY auth /app/auth
 COPY auth/alembic.ini /app/
 COPY auth/migrations /app/migrations
 COPY shared /app/shared
+COPY protos /app/protos
+
+# Generate gRPC files for Auth service
+RUN python3 -m grpc_tools.protoc \
+    --proto_path=/app/protos \
+    --python_out=/app/auth \
+    --grpc_python_out=/app/auth \
+    /app/protos/auth.proto
 
 ENV PYTHONPATH=/app
 

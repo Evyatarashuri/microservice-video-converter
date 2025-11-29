@@ -9,6 +9,7 @@ from bson.objectid import ObjectId
 from shared.rabbit import RabbitMQConnection
 from api import login_api, register_api, download_api
 from api.upload_api import create_upload_blueprint
+from api.grpc_api.grpc_login_api import grpc_login_api
 
 
 # =========================================
@@ -64,6 +65,8 @@ server.register_blueprint(login_api)
 server.register_blueprint(register_api)
 server.register_blueprint(upload_blueprint)
 server.register_blueprint(download_api)
+server.register_blueprint(grpc_login_api)
+
 
 @server.route("/")
 def home():

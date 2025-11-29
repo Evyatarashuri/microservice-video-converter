@@ -1,23 +1,16 @@
 import grpc
-import auth_pb2
-import auth_pb2_grpc
 import os
-
-
-AUTH_GRPC_ADDRESS = os.getenv("AUTH_GRPC_ADDRESS", "auth:50051")
+from clients.grpc import auth_pb2, auth_pb2_grpc
 
 
 class AuthGrpcClient:
-
     def __init__(self):
-        self.channel = grpc.insecure_channel(AUTH_GRPC_ADDRESS)
+        address = os.getenv("AUTH_GRPC_ADDRESS", "auth:50051")
+        self.channel = grpc.insecure_channel(address)
         self.stub = auth_pb2_grpc.AuthServiceStub(self.channel)
 
     def login(self, username, password):
-        request = auth_pb2.LoginRequest(
-            username=username,
-            password=password,
-        )
+        request = auth_pb2.LoginRequest(username=username, password=password)
         return self.stub.Login(request)
 
     def validate(self, token):

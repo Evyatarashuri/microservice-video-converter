@@ -16,6 +16,14 @@ RUN pip install --no-cache-dir -r gateway/requirements.txt
 
 COPY gateway /app/gateway
 COPY shared /app/shared
+COPY protos /app/protos
+
+# Generate gRPC files for Gateway client
+RUN python3 -m grpc_tools.protoc \
+    --proto_path=/app/protos \
+    --python_out=/app/gateway/clients/grpc \
+    --grpc_python_out=/app/gateway/clients/grpc \
+    /app/protos/auth.proto
 
 ENV PYTHONPATH=/app
 
