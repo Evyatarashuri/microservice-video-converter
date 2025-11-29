@@ -24,11 +24,12 @@ COPY shared /app/shared
 ENV PYTHONPATH=/app
 
 EXPOSE 5000
+EXPOSE 50051
 
 # ==========================================
 # Wait for PostgreSQL + Run Alembic + Start Flask
 # ==========================================
-CMD sh -c "until nc -z $POSTGRES_HOST 5432; do echo 'Waiting for PostgreSQL...'; sleep 2; done; echo 'PostgreSQL is up!'; alembic upgrade head; python3 auth/server.py"
+CMD sh -c "until nc -z $POSTGRES_HOST 5432; do echo 'Waiting for PostgreSQL...'; sleep 2; done; echo 'PostgreSQL is up!'; alembic upgrade head; python3 auth/server.py & python3 auth/grpc_server.py"
 
 # ===========================
 # Docker build instructions
