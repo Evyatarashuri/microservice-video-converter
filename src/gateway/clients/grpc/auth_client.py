@@ -1,6 +1,6 @@
 import grpc
 import os
-from clients.grpc import auth_pb2, auth_pb2_grpc
+from gateway import auth_pb2, auth_pb2_grpc
 
 
 class AuthGrpcClient:
