@@ -15,7 +15,7 @@ def grpc_login():
     logger.info("Received gRPC login request")
 
     if request.method == "GET":
-        return render_template("login.html")
+        return render_template("grpc_login.html")
 
     username = request.form.get("username")
     password = request.form.get("password")
